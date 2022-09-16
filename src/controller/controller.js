@@ -67,12 +67,10 @@ export const addBalance = async (request, reply) => {
 
 		await db.tx(async (t) => {
 			if (!confirmed) {
-				await t.oneOrNone(`INSERT INTO transactions (confirmed, sum, user_id) values ($1, $2, $3)`, [confirmed, sum, id])
 				reply.send({ success: false, message: `Transaction is not confirmed` })
 			} else {
-				await t.oneOrNone(`INSERT INTO transactions (confirmed, sum, user_id) values ($1, $2, $3)`, [confirmed, sum, id])
-				let { money } = await db.oneOrNone(`SELECT money FROM users WHERE id = $1`, [id])
-				const balance = Number(money) + sum
+				let user = await t.one(`SELECT * FROM users WHERE id = $1 FOR UPDATE`, [id])
+				const balance = Number(user.money) + sum
 
 				await t.none(`UPDATE users SET money = $1 where id = $2`, [balance, id])
 				reply.send({ success: true, message: `Transaction confirmed, new balance is ${balance}` })
@@ -99,8 +97,9 @@ export const removeBalance = async (request, reply) => {
 			} else {
 				await t.oneOrNone(`INSERT INTO transactions (confirmed, sum, user_id) values ($1, $2, $3)`, [confirmed, sum, id])
 				let { money } = await db.oneOrNone(`SELECT money FROM users WHERE id = $1`, [id])
-				const balance = Number(money) - sum
+				if (money < sum) reply.send({ success: false, message: `Not enough money` })
 
+				const balance = Number(money) - sum
 				await t.none(`UPDATE users SET money = $1 where id = $2`, [balance, id])
 				reply.send({ success: true, message: `Transaction confirmed, new balance is ${balance}` })
 			}
