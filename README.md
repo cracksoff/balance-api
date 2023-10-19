@@ -1,7 +1,7 @@
 # balance-api
 STATELESS REST API, which implements secure management of the user’s balance.
 
-## Содержание
+## Content
 - [Technologies](#technologies)
 - [How to use](#how-to-use)
 - [Requirements](#requirements)
