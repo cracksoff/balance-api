@@ -96,7 +96,7 @@ export const removeBalance = async (request, reply) => {
 				reply.send({ success: false, message: `Transaction is not confirmed` })
 			} else {
 				await t.oneOrNone(`INSERT INTO transactions (confirmed, sum, user_id) values ($1, $2, $3)`, [confirmed, sum, id])
-				let { money } = await db.oneOrNone(`SELECT money FROM users WHERE id = $1`, [id])
+				let { money } = await db.oneOrNone(`SELECT money FROM users WHERE id = $1 FOR UPDATE`, [id])
 				if (money < sum) reply.send({ success: false, message: `Not enough money` })
 
 				const balance = Number(money) - sum
